@@ -359,7 +359,18 @@ function App() {
     }
 
     const scrollAmount = Math.max(220, Math.floor(rail.clientWidth * 0.7));
-    rail.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+    rail.scrollBy({ left: direction * scrollAmount, behavior: 'auto' });
+  }
+
+  function rotateHero(direction) {
+    if (!catalog.length) {
+      return;
+    }
+
+    const currentIndex = catalog.findIndex((item) => item.id === hero.id);
+    const safeIndex = currentIndex < 0 ? 0 : currentIndex;
+    const nextIndex = (safeIndex + direction + catalog.length) % catalog.length;
+    setHero(catalog[nextIndex]);
   }
 
   const watchlistTitles = catalog.filter((item) => watchlist.includes(item.id));
@@ -417,6 +428,17 @@ function App() {
         >
           <div className="billboard-copy">
             <p className="hero-kicker">{hero.accent ?? hero.category}</p>
+            <div className="billboard-dots" aria-label="Featured title position">
+              {catalog.slice(0, 8).map((item) => (
+                <button
+                  key={item.id}
+                  className={`billboard-dot ${hero.id === item.id ? 'billboard-dot--active' : ''}`}
+                  onClick={() => setHero(item)}
+                  type="button"
+                  aria-label={`Show ${item.title}`}
+                />
+              ))}
+            </div>
             <h2>{hero.title}</h2>
             <div className="hero-meta">
               <span>{hero.year}</span>
@@ -432,6 +454,14 @@ function App() {
                 More Info
               </button>
             </div>
+          </div>
+          <div className="billboard-arrows" aria-label="Billboard controls">
+            <button className="billboard-arrow" onClick={() => rotateHero(-1)} type="button" aria-label="Previous featured title">
+              {'<'}
+            </button>
+            <button className="billboard-arrow" onClick={() => rotateHero(1)} type="button" aria-label="Next featured title">
+              {'>'}
+            </button>
           </div>
         </section>
 

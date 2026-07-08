@@ -16,6 +16,13 @@
   box-sizing: border-box;
 }
 
+*,
+*::before,
+*::after {
+  transition: none !important;
+  animation: none !important;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -175,6 +182,46 @@ img {
 
 .billboard-copy {
   width: min(560px, 100%);
+}
+
+.billboard-arrows {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  display: inline-flex;
+  gap: 8px;
+}
+
+.billboard-arrow {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(0, 0, 0, 0.58);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.billboard-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+}
+
+.billboard-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.billboard-dot--active {
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 10px rgba(229, 9, 20, 0.75);
 }
 
 .billboard h2,
@@ -908,6 +955,46 @@ img {
 
   .billboard-copy {
     width: min(560px, 100%);
+  }
+
+  .billboard-arrows {
+    position: absolute;
+    right: 18px;
+    bottom: 18px;
+    display: inline-flex;
+    gap: 8px;
+  }
+
+  .billboard-arrow {
+    width: 38px;
+    height: 38px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: rgba(0, 0, 0, 0.58);
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 800;
+  }
+
+  .billboard-dots {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 10px;
+  }
+
+  .billboard-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    background: rgba(255, 255, 255, 0.22);
+  }
+
+  .billboard-dot--active {
+    background: var(--accent);
+    border-color: var(--accent);
+    box-shadow: 0 0 10px rgba(229, 9, 20, 0.75);
   }
 
   .billboard h2,
