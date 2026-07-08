@@ -78,6 +78,7 @@ function App() {
   const [authForm, setAuthForm] = useState({ name: '', email: '', password: '' });
   const [authPending, setAuthPending] = useState(false);
   const [toast, setToast] = useState('');
+  const anyModalOpen = Boolean(selectedTitle) || authOpen || paymentOpen;
 
   useEffect(() => {
     const featuredRotation = window.setInterval(() => {
@@ -119,6 +120,48 @@ function App() {
     const timeout = window.setTimeout(() => setToast(''), 2600);
     return () => window.clearTimeout(timeout);
   }, [toast]);
+
+  useEffect(() => {
+    if (!anyModalOpen) {
+      return undefined;
+    }
+
+    function handleEscape(event) {
+      if (event.key !== 'Escape') {
+        return;
+      }
+
+      if (selectedTitle) {
+        setSelectedTitle(null);
+        return;
+      }
+
+      if (paymentOpen) {
+        setPaymentOpen(false);
+        return;
+      }
+
+      if (authOpen) {
+        setAuthOpen(false);
+      }
+    }
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [anyModalOpen, selectedTitle, paymentOpen, authOpen]);
+
+  useEffect(() => {
+    if (!anyModalOpen) {
+      return undefined;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [anyModalOpen]);
 
   useEffect(() => {
     if (!configReady || !auth) {
@@ -241,7 +284,15 @@ function App() {
 
   function openPlan(plan) {
     setSelectedPlan(plan);
+    setSelectedTitle(null);
+    setAuthOpen(false);
     setPaymentOpen(true);
+  }
+
+  function openTitle(item) {
+    setAuthOpen(false);
+    setPaymentOpen(false);
+    setSelectedTitle(item);
   }
 
   const watchlistTitles = catalog.filter((item) => watchlist.includes(item.id));
@@ -266,7 +317,7 @@ function App() {
           </nav>
         </div>
         <div className="browse-header__right">
-          <button className="ghost-button ghost-button--compact" onClick={() => setSelectedTitle(hero)}>
+          <button className="ghost-button ghost-button--compact" onClick={() => openTitle(hero)}>
             Featured
           </button>
           <button className="ghost-button ghost-button--compact" onClick={() => setPaymentOpen(true)}>
@@ -302,10 +353,10 @@ function App() {
             </div>
             <p className="hero-description">{hero.description}</p>
             <div className="hero-actions">
-              <button className="primary-button" onClick={() => setSelectedTitle(hero)}>
+              <button className="primary-button" onClick={() => openTitle(hero)}>
                 Play
               </button>
-              <button className="ghost-button" onClick={() => setSelectedTitle(hero)}>
+              <button className="ghost-button" onClick={() => openTitle(hero)}>
                 More Info
               </button>
             </div>
@@ -325,7 +376,7 @@ function App() {
                 index={index}
                 key={item.id}
                 inWatchlist={watchlist.includes(item.id)}
-                onOpen={setSelectedTitle}
+                onOpen={openTitle}
                 onToggle={handleWatchlistToggle}
               />
             ))}
@@ -367,7 +418,7 @@ function App() {
                   index={index}
                   key={item.id}
                   inWatchlist={watchlist.includes(item.id)}
-                  onOpen={setSelectedTitle}
+                  onOpen={openTitle}
                   onToggle={handleWatchlistToggle}
                 />
               ))}
@@ -389,7 +440,7 @@ function App() {
                   index={index}
                   key={item.id}
                   inWatchlist={watchlist.includes(item.id)}
-                  onOpen={setSelectedTitle}
+                  onOpen={openTitle}
                   onToggle={handleWatchlistToggle}
                 />
               ))}
