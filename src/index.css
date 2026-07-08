@@ -370,7 +370,7 @@ img {
   border-radius: 4px;
   overflow: hidden;
   background: #222;
-  animation: fadeUp 600ms ease both;
+  animation: fadeUp 260ms ease both;
   transition: transform 180ms ease, z-index 180ms ease;
 }
 
@@ -436,7 +436,7 @@ img {
   place-items: center;
   padding: 18px;
   background: rgba(0, 0, 0, 0.76);
-  animation: fadeIn 220ms ease;
+  animation: fadeIn 120ms ease;
 }
 
 .modal-shell,
@@ -655,7 +655,7 @@ img {
 .reveal {
   opacity: 0;
   transform: translateY(24px);
-  transition: opacity 600ms ease, transform 600ms ease;
+  transition: opacity 240ms ease, transform 240ms ease;
 }
 
 .reveal.is-visible {
@@ -1017,7 +1017,7 @@ img {
     border-radius: 4px;
     overflow: hidden;
     background: #222;
-    animation: fadeUp 600ms ease both;
+    animation: fadeUp 260ms ease both;
     transition: transform 180ms ease, z-index 180ms ease;
   }
 
@@ -1083,7 +1083,7 @@ img {
     place-items: center;
     padding: 18px;
     background: rgba(0, 0, 0, 0.76);
-    animation: fadeIn 220ms ease;
+    animation: fadeIn 120ms ease;
   }
 
   .modal-shell,
@@ -1301,7 +1301,7 @@ img {
   .reveal {
     opacity: 0;
     transform: translateY(24px);
-    transition: opacity 600ms ease, transform 600ms ease;
+    transition: opacity 240ms ease, transform 240ms ease;
   }
 
   .reveal.is-visible {
