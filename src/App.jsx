@@ -70,7 +70,7 @@ function App() {
     const cached = localStorage.getItem(watchlistKey);
     return cached ? JSON.parse(cached) : [];
   });
-  const [selectedTitle, setSelectedTitle] = useState(featuredTitle);
+  const [selectedTitle, setSelectedTitle] = useState(null);
   const [selectedPlan, setSelectedPlan] = useState(plans[1]);
   const [authMode, setAuthMode] = useState('signin');
   const [authOpen, setAuthOpen] = useState(false);
@@ -414,7 +414,7 @@ function App() {
 
       <TitleModal
         item={selectedTitle}
-        inWatchlist={watchlist.includes(selectedTitle.id)}
+        inWatchlist={selectedTitle ? watchlist.includes(selectedTitle.id) : false}
         onClose={() => setSelectedTitle(null)}
         onToggle={handleWatchlistToggle}
       />
