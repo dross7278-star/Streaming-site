@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StreamFlix – Watch Anywhere</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Netflix+Sans:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       LOGIN PAGE
+  ═══════════════════════════════════════════════════════════════════ -->
+  <section id="login-page" class="page active">
+    <!-- Background hero image -->
+    <div class="login-bg"></div>
+    <div class="login-bg-overlay"></div>
+
+    <!-- Top bar -->
+    <header class="login-header">
+      <div class="logo">
+        <span class="logo-text">STREAMFLIX</span>
+      </div>
+    </header>
+
+    <!-- Login card -->
+    <main class="login-main">
+      <div class="login-card">
+        <h1 class="login-title">Sign In</h1>
+
+        <form id="login-form" novalidate>
+          <div class="form-group">
+            <input
+              type="email"
+              id="login-email"
+              class="form-input"
+              placeholder=" "
+              autocomplete="email"
+            />
+            <label for="login-email" class="form-label">Email address</label>
+            <span class="form-error" id="email-error"></span>
+          </div>
+
+          <div class="form-group">
+            <input
+              type="password"
+              id="login-password"
+              class="form-input"
+              placeholder=" "
+              autocomplete="current-password"
+            />
+            <label for="login-password" class="form-label">Password</label>
+            <span class="form-error" id="password-error"></span>
+          </div>
+
+          <button type="submit" class="btn-primary login-btn" id="login-btn">
+            Sign In
+          </button>
+
+          <p class="login-hint">
+            Use any email &amp; password to sign in (demo mode).
+          </p>
+        </form>
+
+        <p class="login-signup">
+          New to StreamFlix?
+          <a href="#" id="signup-link">Sign up now.</a>
+        </p>
+      </div>
+    </main>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       BROWSE PAGE
+  ═══════════════════════════════════════════════════════════════════ -->
+  <section id="browse-page" class="page">
+
+    <!-- ── Navigation ── -->
+    <nav id="main-nav" class="navbar">
+      <div class="nav-left">
+        <span class="logo logo--small">STREAMFLIX</span>
+        <ul class="nav-links">
+          <li><a href="#" class="nav-link active-link" data-filter="all">Home</a></li>
+          <li><a href="#" class="nav-link" data-filter="action">Action</a></li>
+          <li><a href="#" class="nav-link" data-filter="comedy">Comedy</a></li>
+          <li><a href="#" class="nav-link" data-filter="drama">Drama</a></li>
+          <li><a href="#" class="nav-link" data-filter="sci-fi">Sci-Fi</a></li>
+          <li><a href="#" class="nav-link" data-filter="horror">Horror</a></li>
+          <li><a href="#" class="nav-link" data-filter="animation">Animation</a></li>
+          <li><a href="#" class="nav-link" data-filter="documentary">Documentary</a></li>
+        </ul>
+      </div>
+
+      <div class="nav-right">
+        <!-- Search -->
+        <div class="search-wrapper" id="search-wrapper">
+          <button class="search-icon-btn" id="search-toggle" aria-label="Open search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </button>
+          <input
+            type="text"
+            id="search-input"
+            class="search-input"
+            placeholder="Titles, genres, people…"
+            aria-label="Search"
+          />
+        </div>
+
+        <!-- User menu -->
+        <div class="user-menu" id="user-menu">
+          <img
+            src="https://occ-0-8407-2164.1.nflxso.net/dnm/api/v6/K6hjPJd6cR6ok0pRQZZBqEFlIqY/AAAABdpkabKqmuDSVf2nrn9bYknFqHSE_1j0flJE2NiRUgD1BKdHi_8YNH0MhGFjzFdBPMiKz9YJVCPWCFBjW7r0gCPvp1xY.png"
+            alt="Profile"
+            class="avatar"
+            onerror="this.src=''"
+            id="avatar-img"
+          />
+          <div class="dropdown" id="user-dropdown">
+            <div class="dropdown-profile">
+              <span class="dropdown-name" id="user-display-name">User</span>
+            </div>
+            <hr class="dropdown-divider" />
+            <a href="#" class="dropdown-item" id="logout-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="dropdown-icon">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                <polyline points="16 17 21 12 16 7"/>
+                <line x1="21" y1="12" x2="9" y2="12"/>
+              </svg>
+              Sign out of StreamFlix
+            </a>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- ── Hero Banner ── -->
+    <section class="hero" id="hero-banner">
+      <div class="hero-backdrop" id="hero-backdrop"></div>
+      <div class="hero-gradient"></div>
+      <div class="hero-content" id="hero-content">
+        <div class="hero-badge" id="hero-badge">STREAMFLIX ORIGINAL</div>
+        <h2 class="hero-title" id="hero-title">Loading…</h2>
+        <p class="hero-description" id="hero-description"></p>
+        <div class="hero-meta" id="hero-meta"></div>
+        <div class="hero-actions">
+          <button class="btn-play" id="hero-play-btn">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+            Play
+          </button>
+          <button class="btn-more" id="hero-more-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="16"/>
+              <line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+            More Info
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Movie Rows ── -->
+    <section class="rows-section" id="rows-section">
+      <!-- rows injected by JS -->
+    </section>
+
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       MOVIE MODAL
+  ═══════════════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-card">
+      <button class="modal-close" id="modal-close" aria-label="Close">✕</button>
+
+      <div class="modal-hero" id="modal-hero">
+        <div class="modal-hero-gradient"></div>
+        <div class="modal-hero-info">
+          <h2 class="modal-title" id="modal-title"></h2>
+          <div class="modal-actions">
+            <button class="btn-play btn-play--sm" id="modal-play-btn">
+              <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Play
+            </button>
+            <button class="btn-list" id="modal-list-btn" aria-label="Add to list">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        <div class="modal-left">
+          <div class="modal-meta" id="modal-meta"></div>
+          <p class="modal-description" id="modal-description"></p>
+        </div>
+        <div class="modal-right">
+          <p class="modal-detail" id="modal-genres"></p>
+          <p class="modal-detail" id="modal-cast"></p>
+          <p class="modal-detail" id="modal-maturity"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       TOAST NOTIFICATION
+  ═══════════════════════════════════════════════════════════════════ -->
+  <div class="toast" id="toast"></div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
