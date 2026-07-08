@@ -133,6 +133,7 @@ img {
   background: transparent;
   color: rgba(255, 255, 255, 0.76);
   font-size: 0.9rem;
+  transition: color 3ms linear, background-color 3ms linear;
 }
 
 .browse-nav__item--active {
@@ -196,10 +197,23 @@ img {
 
 .hero-kicker {
   margin: 0 0 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   color: #ffffff;
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+}
+
+.hero-kicker::before,
+.hero-kicker::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 0 12px rgba(229, 9, 20, 0.65);
 }
 
 .hero-description {
@@ -299,6 +313,61 @@ img {
 
 .section-heading--compact {
   align-items: center;
+}
+
+.section-heading__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.feed-toggle {
+  display: inline-flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 5px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.feed-toggle__button {
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.feed-toggle__button--active {
+  background: rgba(229, 9, 20, 0.24);
+  color: var(--text);
+}
+
+.section-arrows {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.section-arrow-button {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1;
+  transition: background 120ms ease, transform 120ms ease;
+}
+
+.section-arrow-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
 }
 
 .section-heading h3,
@@ -698,6 +767,11 @@ img {
     flex-direction: column;
   }
 
+  .section-heading__actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
   .modal-layout,
   .title-modal-layout,
   .checkout-options {
@@ -792,6 +866,7 @@ img {
     background: transparent;
     color: rgba(255, 255, 255, 0.76);
     font-size: 0.9rem;
+    transition: color 3ms linear, background-color 3ms linear;
   }
 
   .browse-nav__item--active {
@@ -855,10 +930,23 @@ img {
 
   .hero-kicker {
     margin: 0 0 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
     color: #ffffff;
     font-weight: 800;
     letter-spacing: 0.14em;
     text-transform: uppercase;
+  }
+
+  .hero-kicker::before,
+  .hero-kicker::after {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--accent);
+    box-shadow: 0 0 12px rgba(229, 9, 20, 0.65);
   }
 
   .hero-description {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
@@ -8,7 +8,12 @@ import {
 } from 'firebase/auth';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { auth, configReady, db, googleProvider } from './firebase';
-import { catalog as fallbackCatalog, featuredTitle as fallbackFeaturedTitle, fetchNewestAnimationCatalog } from './data/catalog';
+import {
+  animationFeedOptions,
+  catalog as fallbackCatalog,
+  featuredTitle as fallbackFeaturedTitle,
+  fetchAnimationCatalog,
+} from './data/catalog';
 
 const plans = [
   {
@@ -46,12 +51,6 @@ const plans = [
   },
 ];
 
-const rails = [
-  { title: 'Newest Animation Movies', filter: (item) => item.mediaType === 'movie' },
-  { title: 'Newest Animation Series', filter: (item) => item.mediaType === 'tv' },
-  { title: 'All New Animation', filter: () => true },
-];
-
 const browseTabs = ['Home', 'Series', 'Films', 'New & Popular', 'My List'];
 
 const stripeLink = import.meta.env.VITE_STRIPE_PAYMENT_LINK?.trim() ?? '';
@@ -80,14 +79,26 @@ function App() {
   const [authPending, setAuthPending] = useState(false);
   const [toast, setToast] = useState('');
   const [catalogLoading, setCatalogLoading] = useState(false);
+  const [activeFeed, setActiveFeed] = useState('newest');
+  const [activeBrowseTab, setActiveBrowseTab] = useState('Home');
   const anyModalOpen = Boolean(selectedTitle) || authOpen || paymentOpen;
+  const railRefs = useRef({});
+
+  const feedTitlePrefix =
+    activeFeed === 'topRated' ? 'Top Rated' : activeFeed === 'upcoming' ? 'Upcoming' : 'Newest';
+
+  const rails = [
+    { title: `${feedTitlePrefix} Animation Movies`, filter: (item) => item.mediaType === 'movie' },
+    { title: `${feedTitlePrefix} Animation Series`, filter: (item) => item.mediaType === 'tv' },
+    { title: `${feedTitlePrefix} Animation Mix`, filter: () => true },
+  ];
 
   useEffect(() => {
     let active = true;
 
     async function loadNewestAnimation() {
       setCatalogLoading(true);
-      const nextCatalog = await fetchNewestAnimationCatalog(tmdbApiKey);
+      const nextCatalog = await fetchAnimationCatalog(tmdbApiKey, activeFeed);
 
       if (!active) {
         return;
@@ -108,7 +119,7 @@ function App() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [activeFeed]);
 
   useEffect(() => {
     if (!catalog.length) {
@@ -330,6 +341,27 @@ function App() {
     setSelectedTitle(item);
   }
 
+  function setRailRef(key) {
+    return (node) => {
+      if (node) {
+        railRefs.current[key] = node;
+        return;
+      }
+
+      delete railRefs.current[key];
+    };
+  }
+
+  function scrollRail(key, direction) {
+    const rail = railRefs.current[key];
+    if (!rail) {
+      return;
+    }
+
+    const scrollAmount = Math.max(220, Math.floor(rail.clientWidth * 0.7));
+    rail.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+  }
+
   const watchlistTitles = catalog.filter((item) => watchlist.includes(item.id));
   const heroCompanions = catalog.filter((item) => item.id !== hero.id).slice(0, 4);
 
@@ -344,8 +376,13 @@ function App() {
             <p className="eyebrow">StellarStream</p>
           </div>
           <nav className="browse-nav" aria-label="Browse sections">
-            {browseTabs.map((tab, index) => (
-              <button className={`browse-nav__item ${index === 0 ? 'browse-nav__item--active' : ''}`} key={tab} type="button">
+            {browseTabs.map((tab) => (
+              <button
+                className={`browse-nav__item ${activeBrowseTab === tab ? 'browse-nav__item--active' : ''}`}
+                key={tab}
+                onClick={() => setActiveBrowseTab(tab)}
+                type="button"
+              >
                 {tab}
               </button>
             ))}
@@ -402,10 +439,29 @@ function App() {
           <div className="section-heading section-heading--compact">
             <div>
               <h3>Continue Watching</h3>
-              {catalogLoading && <p className="eyebrow">Loading newest animation...</p>}
+              {catalogLoading && <p className="eyebrow">Loading animation feed...</p>}
+            </div>
+            <div className="section-heading__actions">
+              <div className="feed-toggle" role="tablist" aria-label="Animation feed filter">
+                {animationFeedOptions.map((option) => (
+                  <button
+                    key={option.id}
+                    className={`feed-toggle__button ${activeFeed === option.id ? 'feed-toggle__button--active' : ''}`}
+                    onClick={() => setActiveFeed(option.id)}
+                    type="button"
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+              <RailControls
+                label="Continue Watching"
+                onNext={() => scrollRail('continue-watching', 1)}
+                onPrev={() => scrollRail('continue-watching', -1)}
+              />
             </div>
           </div>
-          <div className="rail-grid rail-grid--browse rail-grid--scroll">
+          <div className="rail-grid rail-grid--browse rail-grid--scroll" ref={setRailRef('continue-watching')}>
             {heroCompanions.map((item, index) => (
               <TitleCard
                 item={item}
@@ -424,8 +480,13 @@ function App() {
             <div>
               <h3>Membership Options</h3>
             </div>
+            <RailControls
+              label="Membership Options"
+              onNext={() => scrollRail('membership-options', 1)}
+              onPrev={() => scrollRail('membership-options', -1)}
+            />
           </div>
-          <div className="plans-inline__row">
+          <div className="plans-inline__row" ref={setRailRef('membership-options')}>
             {plans.map((plan) => (
               <button className={`plan-chip ${selectedPlan.id === plan.id ? 'plan-chip--active' : ''}`} key={plan.id} onClick={() => openPlan(plan)} type="button">
                 <span className="plan-chip__badge">{plan.badge}</span>
@@ -446,8 +507,13 @@ function App() {
                 <p className="eyebrow">My List</p>
                 <h3>My List</h3>
               </div>
+              <RailControls
+                label="My List"
+                onNext={() => scrollRail('watchlist', 1)}
+                onPrev={() => scrollRail('watchlist', -1)}
+              />
             </div>
-            <div className="rail-grid rail-grid--browse rail-grid--scroll">
+            <div className="rail-grid rail-grid--browse rail-grid--scroll" ref={setRailRef('watchlist')}>
               {watchlistTitles.map((item, index) => (
                 <TitleCard
                   item={item}
@@ -468,8 +534,13 @@ function App() {
               <div>
                 <h3>{rail.title}</h3>
               </div>
+              <RailControls
+                label={rail.title}
+                onNext={() => scrollRail(rail.title, 1)}
+                onPrev={() => scrollRail(rail.title, -1)}
+              />
             </div>
-            <div className="rail-grid rail-grid--browse rail-grid--scroll">
+            <div className="rail-grid rail-grid--browse rail-grid--scroll" ref={setRailRef(rail.title)}>
               {catalog.filter(rail.filter).map((item, index) => (
                 <TitleCard
                   item={item}
@@ -685,6 +756,19 @@ function TitleCard({ item, index, inWatchlist, onOpen, onToggle }) {
         </div>
       </div>
     </article>
+  );
+}
+
+function RailControls({ label, onNext, onPrev }) {
+  return (
+    <div className="section-arrows" aria-label={`${label} controls`}>
+      <button className="section-arrow-button" onClick={onPrev} type="button" aria-label={`Scroll ${label} left`}>
+        {'<'}
+      </button>
+      <button className="section-arrow-button" onClick={onNext} type="button" aria-label={`Scroll ${label} right`}>
+        {'>'}
+      </button>
+    </div>
   );
 }
 
