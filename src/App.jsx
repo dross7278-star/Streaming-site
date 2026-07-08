@@ -245,7 +245,7 @@ function App() {
   }
 
   const watchlistTitles = catalog.filter((item) => watchlist.includes(item.id));
-  const heroCompanions = catalog.filter((item) => item.id !== hero.id).slice(0, 3);
+  const heroCompanions = catalog.filter((item) => item.id !== hero.id).slice(0, 4);
 
   return (
     <div className="app-shell">
@@ -256,7 +256,6 @@ function App() {
         <div className="browse-header__left">
           <div className="brand-lockup brand-lockup--browse">
             <p className="eyebrow">StellarStream</p>
-            <span className="brand-status">Browse</span>
           </div>
           <nav className="browse-nav" aria-label="Browse sections">
             {browseTabs.map((tab, index) => (
@@ -287,109 +286,57 @@ function App() {
       </header>
 
       <main>
-        <section className="billboard reveal is-visible">
-          <div className="hero-copy">
-            <div className="hero-kicker-row">
-              <p className="hero-kicker">{hero.accent ?? hero.category}</p>
-              <span className="hero-live-pill">Featured tonight</span>
-            </div>
+        <section
+          className="billboard reveal is-visible"
+          style={{
+            backgroundImage: `linear-gradient(90deg, rgba(0, 0, 0, 0.88) 0%, rgba(0, 0, 0, 0.72) 36%, rgba(0, 0, 0, 0.22) 68%, rgba(0, 0, 0, 0.78) 100%), url(${hero.image})`,
+          }}
+        >
+          <div className="billboard-copy">
+            <p className="hero-kicker">{hero.accent ?? hero.category}</p>
             <h2>{hero.title}</h2>
-            <p className="hero-description">{hero.description}</p>
             <div className="hero-meta">
               <span>{hero.year}</span>
-              <span>{hero.duration}</span>
               <span>{hero.rating}</span>
-              <span>{hero.category}</span>
+              <span>{hero.duration}</span>
             </div>
-            <div className="hero-storyline">
-              <article>
-                <strong>Scene</strong>
-                <span>Premium landing experience with layered motion and cinematic framing.</span>
-              </article>
-              <article>
-                <strong>Stack</strong>
-                <span>React, Firebase auth, Firestore watchlists, Vercel deployment.</span>
-              </article>
-            </div>
+            <p className="hero-description">{hero.description}</p>
             <div className="hero-actions">
               <button className="primary-button" onClick={() => setSelectedTitle(hero)}>
-                Explore title
+                Play
               </button>
-              <button className="ghost-button" onClick={() => openPlan(plans[2])}>
-                Upgrade to Ultra
+              <button className="ghost-button" onClick={() => setSelectedTitle(hero)}>
+                More Info
               </button>
             </div>
-            <div className="hero-proofbar billboard-proofbar">
-              <div>
-                <strong>{catalog.length} titles</strong>
-                <span>Hand-curated catalog lanes</span>
-              </div>
-              <div>
-                <strong>{watchlist.length} saved</strong>
-                <span>My List in this session</span>
-              </div>
-            </div>
-          </div>
-          <div className="hero-visuals billboard-visuals">
-            <div className="hero-art">
-              <img src={hero.image} alt={hero.title} />
-              <div className="hero-art-overlay">
-                <div>
-                  <span className="hero-art-label">Now spotlighting</span>
-                  <strong>{hero.title}</strong>
-                </div>
-                <span className="hero-art-score">96% match</span>
-              </div>
-            </div>
-            <aside className="hero-sidecar billboard-sidecar">
-              <div className="hero-sidecar__header">
-                <p className="eyebrow">Up next</p>
-                <span>Because you watched sci-fi</span>
-              </div>
-              <div className="hero-sidecar__list">
-                {heroCompanions.map((item) => (
-                  <button
-                    className="hero-sidecar__item"
-                    key={item.id}
-                    onClick={() => setSelectedTitle(item)}
-                    type="button"
-                  >
-                    <img src={item.image} alt={item.title} />
-                    <div>
-                      <strong>{item.title}</strong>
-                      <span>
-                        {item.category} · {item.duration}
-                      </span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </aside>
           </div>
         </section>
 
-        <section className="browse-strip reveal">
-          <article className="browse-strip__card">
-            <strong>Continue Watching</strong>
-            <span>{hero.title} anchors the current featured lane.</span>
-          </article>
-          <article className="browse-strip__card">
-            <strong>My List</strong>
-            <span>{watchlist.length > 0 ? `${watchlist.length} saved titles ready to reopen.` : 'Save titles to build your personal row.'}</span>
-          </article>
-          <article className="browse-strip__card">
-            <strong>Account</strong>
-            <span>{user ? user.displayName ?? user.email : 'Guest browsing until sign in.'}</span>
-          </article>
+        <section className="catalog-section catalog-section--compact reveal">
+          <div className="section-heading section-heading--compact">
+            <div>
+              <h3>Continue Watching</h3>
+            </div>
+          </div>
+          <div className="rail-grid rail-grid--browse rail-grid--scroll">
+            {heroCompanions.map((item, index) => (
+              <TitleCard
+                item={item}
+                index={index}
+                key={item.id}
+                inWatchlist={watchlist.includes(item.id)}
+                onOpen={setSelectedTitle}
+                onToggle={handleWatchlistToggle}
+              />
+            ))}
+          </div>
         </section>
 
         <section className="plans-inline reveal" id="plans">
-          <div className="section-heading">
+          <div className="section-heading section-heading--compact">
             <div>
-              <p className="eyebrow">Memberships</p>
-              <h3>Keep plans available, but inside the browsing flow instead of ahead of it.</h3>
+              <h3>Membership Options</h3>
             </div>
-            <p className="section-lead">This row now behaves like another browse surface rather than a full opening page section.</p>
           </div>
           <div className="plans-inline__row">
             {plans.map((plan) => (
@@ -407,14 +354,13 @@ function App() {
 
         {watchlistTitles.length > 0 && (
           <section className="watchlist reveal">
-            <div className="section-heading">
+            <div className="section-heading section-heading--compact">
               <div>
                 <p className="eyebrow">My List</p>
-                <h3>Saved titles stay close to the top of the browse flow.</h3>
+                <h3>My List</h3>
               </div>
-              <p className="section-lead">This row replaces the feeling of a separate landing page with immediate personal context.</p>
             </div>
-            <div className="rail-grid rail-grid--browse">
+            <div className="rail-grid rail-grid--browse rail-grid--scroll">
               {watchlistTitles.map((item, index) => (
                 <TitleCard
                   item={item}
@@ -431,14 +377,12 @@ function App() {
 
         {rails.map((rail) => (
           <section className="catalog-section reveal" key={rail.title}>
-            <div className="section-heading">
+            <div className="section-heading section-heading--compact">
               <div>
-                <p className="eyebrow">Browse</p>
                 <h3>{rail.title}</h3>
               </div>
-              <p className="section-lead">{catalog.filter(rail.filter).length} titles in this lane, arranged as a visual shelf with deeper metadata on hover.</p>
             </div>
-            <div className="rail-grid rail-grid--browse">
+            <div className="rail-grid rail-grid--browse rail-grid--scroll">
               {catalog.filter(rail.filter).map((item, index) => (
                 <TitleCard
                   item={item}
@@ -455,8 +399,7 @@ function App() {
 
         <section className="browse-cta reveal">
           <div>
-            <p className="eyebrow">Account</p>
-            <h3>Sign in, save titles, and connect payments without leaving the browse flow.</h3>
+            <h3>{user ? 'Manage your account and membership.' : 'Sign in to save titles and manage membership.'}</h3>
           </div>
           <div className="footer-actions">
             <button className="ghost-button" onClick={() => setAuthOpen(true)}>
@@ -639,20 +582,18 @@ function TitleCard({ item, index, inWatchlist, onOpen, onToggle }) {
       <img src={item.image} alt={item.title} />
       <div className="title-overlay">
         <div className="title-overlay__top">
-          <p>{item.category}</p>
-          <span className="title-overlay__match">94% match</span>
+          <span className="title-overlay__match">94% Match</span>
         </div>
         <h4>{item.title}</h4>
         <span>
-          {item.year} • {item.duration}
+          {item.year} • {item.rating}
         </span>
-        <p className="title-overlay__description">{item.description}</p>
         <div className="card-actions">
           <button className="primary-button primary-button--small" onClick={() => onOpen(item)}>
-            Details
+            More Info
           </button>
           <button className="ghost-button ghost-button--small" onClick={() => onToggle(item.id)}>
-            {inWatchlist ? 'Remove' : 'Watchlist'}
+            {inWatchlist ? 'In My List' : 'My List'}
           </button>
         </div>
       </div>
