@@ -1,3 +1,6 @@
+const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w1280';
+const TMDB_API_BASE = 'https://api.themoviedb.org/3';
+
 export const featuredTitle = {
   id: 'aurora-protocol',
   title: 'Aurora Protocol',
@@ -122,3 +125,90 @@ export const catalog = [
       'A touring sound collective records disappearing folk traditions across deserts, harbors, and mountain towns.',
   },
 ];
+
+function formatYear(dateString) {
+  const year = Number.parseInt(String(dateString || '').slice(0, 4), 10);
+  return Number.isFinite(year) ? year : new Date().getFullYear();
+}
+
+function formatRating(voteAverage) {
+  if (!voteAverage || Number.isNaN(voteAverage)) {
+    return 'NR';
+  }
+
+  return `TMDB ${voteAverage.toFixed(1)}`;
+}
+
+function normalizeTmdbItem(item, mediaType) {
+  const rawTitle = mediaType === 'movie' ? item.title : item.name;
+  const title = rawTitle || (mediaType === 'movie' ? 'Untitled Movie' : 'Untitled Series');
+  const date = mediaType === 'movie' ? item.release_date : item.first_air_date;
+  const imagePath = item.backdrop_path || item.poster_path;
+
+  return {
+    id: `tmdb-${mediaType}-${item.id}`,
+    title,
+    category: mediaType === 'movie' ? 'Animation Movie' : 'Animation Series',
+    year: formatYear(date),
+    duration: mediaType === 'movie' ? 'Feature' : 'Series',
+    rating: formatRating(item.vote_average),
+    accent: mediaType === 'movie' ? 'Newest Animation Movie' : 'Newest Animation Series',
+    image: imagePath ? `${TMDB_IMAGE_BASE}${imagePath}` : featuredTitle.image,
+    description: item.overview || 'No overview available yet.',
+    mediaType,
+  };
+}
+
+export async function fetchNewestAnimationCatalog(apiKey) {
+  if (!apiKey) {
+    return {
+      featured: featuredTitle,
+      items: catalog,
+      usedFallback: true,
+      reason: 'No TMDB API key configured.',
+    };
+  }
+
+  const movieUrl = `${TMDB_API_BASE}/discover/movie?api_key=${encodeURIComponent(apiKey)}&with_genres=16&sort_by=primary_release_date.desc&include_adult=false&include_video=false&language=en-US&page=1`;
+  const tvUrl = `${TMDB_API_BASE}/discover/tv?api_key=${encodeURIComponent(apiKey)}&with_genres=16&sort_by=first_air_date.desc&include_adult=false&language=en-US&page=1`;
+
+  try {
+    const [movieResponse, tvResponse] = await Promise.all([fetch(movieUrl), fetch(tvUrl)]);
+
+    if (!movieResponse.ok || !tvResponse.ok) {
+      throw new Error('TMDB request failed.');
+    }
+
+    const [movieData, tvData] = await Promise.all([movieResponse.json(), tvResponse.json()]);
+    const movieItems = (movieData.results || []).slice(0, 12).map((item) => normalizeTmdbItem(item, 'movie'));
+    const tvItems = (tvData.results || []).slice(0, 12).map((item) => normalizeTmdbItem(item, 'tv'));
+
+    const items = [...movieItems, ...tvItems]
+      .filter((item) => Boolean(item.image))
+      .sort((a, b) => b.year - a.year)
+      .slice(0, 20);
+
+    if (!items.length) {
+      return {
+        featured: featuredTitle,
+        items: catalog,
+        usedFallback: true,
+        reason: 'TMDB returned no animation titles.',
+      };
+    }
+
+    return {
+      featured: items[0],
+      items,
+      usedFallback: false,
+      reason: '',
+    };
+  } catch (error) {
+    return {
+      featured: featuredTitle,
+      items: catalog,
+      usedFallback: true,
+      reason: error instanceof Error ? error.message : 'Unable to load TMDB data.',
+    };
+  }
+}

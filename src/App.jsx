@@ -8,7 +8,7 @@ import {
 } from 'firebase/auth';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { auth, configReady, db, googleProvider } from './firebase';
-import { catalog, featuredTitle } from './data/catalog';
+import { catalog as fallbackCatalog, featuredTitle as fallbackFeaturedTitle, fetchNewestAnimationCatalog } from './data/catalog';
 
 const plans = [
   {
@@ -47,21 +47,22 @@ const plans = [
 ];
 
 const rails = [
-  { title: 'Trending Now', filter: () => true },
-  { title: 'Future Noir', filter: (item) => item.category === 'Sci-Fi' || item.category === 'Thriller' },
-  { title: 'Weekend Escape', filter: (item) => item.category === 'Adventure' || item.category === 'Drama' || item.category === 'Romance' },
-  { title: 'Light Watch', filter: (item) => item.category === 'Comedy' || item.category === 'Documentary' || item.category === 'Music' },
+  { title: 'Newest Animation Movies', filter: (item) => item.mediaType === 'movie' },
+  { title: 'Newest Animation Series', filter: (item) => item.mediaType === 'tv' },
+  { title: 'All New Animation', filter: () => true },
 ];
 
 const browseTabs = ['Home', 'Series', 'Films', 'New & Popular', 'My List'];
 
 const stripeLink = import.meta.env.VITE_STRIPE_PAYMENT_LINK?.trim() ?? '';
 const paypalLink = import.meta.env.VITE_PAYPAL_CHECKOUT_URL?.trim() ?? '';
+const tmdbApiKey = import.meta.env.VITE_TMDB_API_KEY?.trim() ?? '';
 const demoUserKey = 'stellarstream-demo-user';
 const watchlistKey = 'stellarstream-watchlist';
 
 function App() {
-  const [hero, setHero] = useState(featuredTitle);
+  const [catalog, setCatalog] = useState(fallbackCatalog);
+  const [hero, setHero] = useState(fallbackFeaturedTitle);
   const [user, setUser] = useState(() => {
     const cached = localStorage.getItem(demoUserKey);
     return cached ? JSON.parse(cached) : null;
@@ -78,18 +79,52 @@ function App() {
   const [authForm, setAuthForm] = useState({ name: '', email: '', password: '' });
   const [authPending, setAuthPending] = useState(false);
   const [toast, setToast] = useState('');
+  const [catalogLoading, setCatalogLoading] = useState(false);
   const anyModalOpen = Boolean(selectedTitle) || authOpen || paymentOpen;
 
   useEffect(() => {
+    let active = true;
+
+    async function loadNewestAnimation() {
+      setCatalogLoading(true);
+      const nextCatalog = await fetchNewestAnimationCatalog(tmdbApiKey);
+
+      if (!active) {
+        return;
+      }
+
+      setCatalog(nextCatalog.items);
+      setHero(nextCatalog.featured);
+
+      if (nextCatalog.usedFallback && nextCatalog.reason) {
+        setToast(`Using local catalog: ${nextCatalog.reason}`);
+      }
+
+      setCatalogLoading(false);
+    }
+
+    loadNewestAnimation();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!catalog.length) {
+      return undefined;
+    }
+
     const featuredRotation = window.setInterval(() => {
       setHero((current) => {
         const currentIndex = catalog.findIndex((item) => item.id === current.id);
-        return catalog[(currentIndex + 1) % catalog.length];
+        const nextIndex = currentIndex < 0 ? 0 : (currentIndex + 1) % catalog.length;
+        return catalog[nextIndex];
       });
     }, 7000);
 
     return () => window.clearInterval(featuredRotation);
-  }, []);
+  }, [catalog]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -367,6 +402,7 @@ function App() {
           <div className="section-heading section-heading--compact">
             <div>
               <h3>Continue Watching</h3>
+              {catalogLoading && <p className="eyebrow">Loading newest animation...</p>}
             </div>
           </div>
           <div className="rail-grid rail-grid--browse rail-grid--scroll">

@@ -1,6 +1,6 @@
 # StellarStream
 
-A React + Firebase streaming platform inspired by premium OTT interfaces. It includes a cinematic landing page, category rails, a Firebase-backed auth surface, watchlist persistence, subscription plan selection, and configurable Stripe/PayPal payment entry points.
+A React + Firebase streaming platform inspired by premium OTT interfaces. It includes a cinematic landing page, category rails, a Firebase-backed auth surface, watchlist persistence, subscription plan selection, configurable Stripe/PayPal payment entry points, and live newest-animation data from TMDB.
 
 ## Stack
 
@@ -17,7 +17,9 @@ A React + Firebase streaming platform inspired by premium OTT interfaces. It inc
 4. Add one or both payment URLs:
    - `VITE_STRIPE_PAYMENT_LINK`
    - `VITE_PAYPAL_CHECKOUT_URL`
-5. Run `npm run dev`
+5. Add your TMDB API key:
+   - `VITE_TMDB_API_KEY`
+6. Run `npm run dev`
 
 ## Firebase data model
 
@@ -37,4 +39,5 @@ Create a Firestore database and allow authenticated users to read and write thei
 
 - If Firebase env vars are missing, auth falls back to a local demo mode so the UI still works.
 - If payment URLs are missing, the UI shows the payment options but disables launch until the checkout links are configured.
+- If `VITE_TMDB_API_KEY` is missing or invalid, the app falls back to the local built-in catalog.
 - This project is intentionally Netflix-inspired rather than reusing Netflix branding or proprietary assets.
