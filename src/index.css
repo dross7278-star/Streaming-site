@@ -237,12 +237,12 @@ img {
   background: #ffffff;
   color: #000000;
   font-weight: 800;
-  transition: transform 180ms ease, opacity 180ms ease, background 180ms ease;
+  transition: transform 120ms ease, opacity 120ms ease, background 120ms ease;
 }
 
 .ghost-button,
 .text-button {
-  transition: transform 180ms ease, opacity 180ms ease, background 180ms ease;
+  transition: transform 120ms ease, opacity 120ms ease, background 120ms ease;
 }
 
 .ghost-button {
@@ -370,8 +370,8 @@ img {
   border-radius: 4px;
   overflow: hidden;
   background: #222;
-  animation: fadeUp 260ms ease both;
-  transition: transform 180ms ease, z-index 180ms ease;
+  animation: fadeUp 180ms ease both;
+  transition: transform 120ms ease, z-index 120ms ease;
 }
 
 .title-card:hover {
@@ -436,7 +436,7 @@ img {
   place-items: center;
   padding: 18px;
   background: rgba(0, 0, 0, 0.76);
-  animation: fadeIn 120ms ease;
+  animation: fadeIn 80ms ease;
 }
 
 .modal-shell,
@@ -655,7 +655,7 @@ img {
 .reveal {
   opacity: 0;
   transform: translateY(24px);
-  transition: opacity 240ms ease, transform 240ms ease;
+  transition: opacity 140ms ease, transform 140ms ease;
 }
 
 .reveal.is-visible {
@@ -750,6 +750,18 @@ img {
   .title-modal-main,
   .title-modal-aside {
     border-radius: 8px;
+  }
+
+  .title-card,
+  .reveal,
+  .modal-scrim {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
   }
 }
 
@@ -884,12 +896,12 @@ img {
     background: #ffffff;
     color: #000000;
     font-weight: 800;
-    transition: transform 180ms ease, opacity 180ms ease, background 180ms ease;
+    transition: transform 120ms ease, opacity 120ms ease, background 120ms ease;
   }
 
   .ghost-button,
   .text-button {
-    transition: transform 180ms ease, opacity 180ms ease, background 180ms ease;
+    transition: transform 120ms ease, opacity 120ms ease, background 120ms ease;
   }
 
   .ghost-button {
@@ -1017,8 +1029,8 @@ img {
     border-radius: 4px;
     overflow: hidden;
     background: #222;
-    animation: fadeUp 260ms ease both;
-    transition: transform 180ms ease, z-index 180ms ease;
+    animation: fadeUp 180ms ease both;
+    transition: transform 120ms ease, z-index 120ms ease;
   }
 
   .title-card:hover {
@@ -1083,7 +1095,7 @@ img {
     place-items: center;
     padding: 18px;
     background: rgba(0, 0, 0, 0.76);
-    animation: fadeIn 120ms ease;
+    animation: fadeIn 80ms ease;
   }
 
   .modal-shell,
@@ -1301,7 +1313,7 @@ img {
   .reveal {
     opacity: 0;
     transform: translateY(24px);
-    transition: opacity 240ms ease, transform 240ms ease;
+    transition: opacity 140ms ease, transform 140ms ease;
   }
 
   .reveal.is-visible {
@@ -1397,4 +1409,17 @@ img {
     .title-modal-aside {
       border-radius: 8px;
     }
+
+    .title-card,
+    .reveal,
+    .modal-scrim {
+      animation: none !important;
+      transition: none !important;
+    }
+
+    .reveal {
+      opacity: 1 !important;
+      transform: none !important;
+    }
   }
+

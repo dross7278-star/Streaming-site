@@ -629,7 +629,7 @@ function App() {
 
 function TitleCard({ item, index, inWatchlist, onOpen, onToggle }) {
   return (
-    <article className="title-card" style={{ animationDelay: `${index * 30}ms` }}>
+    <article className="title-card" style={{ animationDelay: `${index * 16}ms` }}>
       <img src={item.image} alt={item.title} />
       <div className="title-overlay">
         <div className="title-overlay__top">
