@@ -34,3 +34,4 @@ if (configReady) {
 }
 
 export { app, auth, db, googleProvider, configReady };
+console.log('Firebase configReady:', configReady);
