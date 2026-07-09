@@ -1,6 +1,33 @@
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w1280';
 const TMDB_API_BASE = 'https://api.themoviedb.org/3';
 
+const animationFeedConfig = {
+  newest: {
+    id: 'newest',
+    label: 'Newest',
+    moviePath: '/discover/movie',
+    tvPath: '/discover/tv',
+    movieParams: 'with_genres=16&sort_by=primary_release_date.desc&include_adult=false&include_video=false&language=en-US&page=1',
+    tvParams: 'with_genres=16&sort_by=first_air_date.desc&include_adult=false&language=en-US&page=1',
+  },
+  topRated: {
+    id: 'topRated',
+    label: 'Top Rated',
+    moviePath: '/discover/movie',
+    tvPath: '/discover/tv',
+    movieParams: 'with_genres=16&sort_by=vote_average.desc&vote_count.gte=150&include_adult=false&include_video=false&language=en-US&page=1',
+    tvParams: 'with_genres=16&sort_by=vote_average.desc&vote_count.gte=80&include_adult=false&language=en-US&page=1',
+  },
+  upcoming: {
+    id: 'upcoming',
+    label: 'Upcoming',
+    moviePath: '/discover/movie',
+    tvPath: '/discover/tv',
+    movieParams: 'with_genres=16&sort_by=primary_release_date.asc&primary_release_date.gte={today}&include_adult=false&include_video=false&language=en-US&page=1',
+    tvParams: 'with_genres=16&sort_by=first_air_date.asc&first_air_date.gte={today}&include_adult=false&language=en-US&page=1',
+  },
+};
+
 export const featuredTitle = {
   id: 'aurora-protocol',
   title: 'Aurora Protocol',
@@ -159,7 +186,17 @@ function normalizeTmdbItem(item, mediaType) {
   };
 }
 
-export async function fetchNewestAnimationCatalog(apiKey) {
+function getTodayString() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function buildTmdbUrl(path, params, apiKey) {
+  return `${TMDB_API_BASE}${path}?api_key=${encodeURIComponent(apiKey)}&${params}`;
+}
+
+export const animationFeedOptions = Object.values(animationFeedConfig).map(({ id, label }) => ({ id, label }));
+
+export async function fetchAnimationCatalog(apiKey, feed = 'newest') {
   if (!apiKey) {
     return {
       featured: featuredTitle,
@@ -169,8 +206,12 @@ export async function fetchNewestAnimationCatalog(apiKey) {
     };
   }
 
-  const movieUrl = `${TMDB_API_BASE}/discover/movie?api_key=${encodeURIComponent(apiKey)}&with_genres=16&sort_by=primary_release_date.desc&include_adult=false&include_video=false&language=en-US&page=1`;
-  const tvUrl = `${TMDB_API_BASE}/discover/tv?api_key=${encodeURIComponent(apiKey)}&with_genres=16&sort_by=first_air_date.desc&include_adult=false&language=en-US&page=1`;
+  const config = animationFeedConfig[feed] ?? animationFeedConfig.newest;
+  const today = getTodayString();
+  const movieParams = config.movieParams.replace('{today}', today);
+  const tvParams = config.tvParams.replace('{today}', today);
+  const movieUrl = buildTmdbUrl(config.moviePath, movieParams, apiKey);
+  const tvUrl = buildTmdbUrl(config.tvPath, tvParams, apiKey);
 
   try {
     const [movieResponse, tvResponse] = await Promise.all([fetch(movieUrl), fetch(tvUrl)]);
@@ -183,10 +224,7 @@ export async function fetchNewestAnimationCatalog(apiKey) {
     const movieItems = (movieData.results || []).slice(0, 12).map((item) => normalizeTmdbItem(item, 'movie'));
     const tvItems = (tvData.results || []).slice(0, 12).map((item) => normalizeTmdbItem(item, 'tv'));
 
-    const items = [...movieItems, ...tvItems]
-      .filter((item) => Boolean(item.image))
-      .sort((a, b) => b.year - a.year)
-      .slice(0, 20);
+    const items = [...movieItems, ...tvItems].filter((item) => Boolean(item.image)).slice(0, 20);
 
     if (!items.length) {
       return {
@@ -211,4 +249,8 @@ export async function fetchNewestAnimationCatalog(apiKey) {
       reason: error instanceof Error ? error.message : 'Unable to load TMDB data.',
     };
   }
+}
+
+export async function fetchNewestAnimationCatalog(apiKey) {
+  return fetchAnimationCatalog(apiKey, 'newest');
 }
