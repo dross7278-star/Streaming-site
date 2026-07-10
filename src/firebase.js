@@ -32,33 +32,5 @@ if (configReady) {
   db = getFirestore(app);
   googleProvider = new GoogleAuthProvider();
 }
-// ...existing code...
-function normalizeTmdbItem(item, mediaTypeHint) {
-  const mediaType = mediaTypeHint || item.media_type || (item.first_air_date ? 'tv' : 'movie');
-  const rawTitle = mediaType === 'tv' ? item.name : item.title;
-  const title = rawTitle || item.title || item.name || 'Untitled';
 
-  const releaseDate = mediaType === 'tv' ? item.first_air_date : item.release_date;
-  const year = releaseDate ? Number(String(releaseDate).slice(0, 4)) : '—';
-
-  return {
-    id: `${mediaType}-${item.id}`,
-    tmdbId: item.id,
-    mediaType,
-    title,
-    year,
-    rating: typeof item.vote_average === 'number' ? item.vote_average.toFixed(1) : '—',
-    duration: mediaType === 'tv' ? 'Series' : 'Movie',
-    category: mediaType === 'tv' ? 'Series' : 'Movie',
-    accent: 'Newest',
-    description: item.overview || 'No description available.',
-    image: item.poster_path
-      ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
-      : item.backdrop_path
-        ? `https://image.tmdb.org/t/p/original${item.backdrop_path}`
-        : 'https://via.placeholder.com/800x450?text=No+Image',
-    match: Math.round((item.vote_average || 0) * 10),
-  };
-}
 export { app, auth, db, googleProvider, configReady };
-console.log('Firebase configReady:', 

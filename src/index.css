@@ -795,6 +795,8 @@ img {
   }
 }
 
+/* ...existing code... */
+
 @media (max-width: 980px) {
   .browse-header,
   .browse-cta,
@@ -830,3 +832,5 @@ img {
   .app-shell {
     padding: 8px 10px 42px;
   }
+}
+/* ...existing code... */

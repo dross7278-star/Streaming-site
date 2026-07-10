@@ -15,20 +15,7 @@ import {
   featuredTitle as fallbackFeaturedTitle,
   fetchAnimationCatalog,
 } from './data/catalog';
-import { getAuth, signInAnonymously } from "firebase/auth";
 
-const auth = getAuth();
-
-signInAnonymously(auth)
-  .then(() => {
-    // The user is now signed in anonymously!
-    console.log("Anonymous sign-in successful.");
-  })
-  .catch((error) => {
-    const errorCode = error.code;
-    const errorMessage = error.message;
-    console.error(`Error (${errorCode}): ${errorMessage}`);
-  });
 const plans = [
   {
     id: 'starter',
@@ -319,16 +306,18 @@ function App() {
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
 
-  async function persistWatchlist(nextItems) {
-    setWatchlist(nextItems);
+ // ...existing code...
+async function persistWatchlist(nextItems) {
+  setWatchlist(nextItems);
 
-    if (!user || user.demo || !configReady || !db) {
-      localStorage.setItem(watchlistKey, JSON.stringify(nextItems));
-      return;
-    }
-
-    await setDoc(doc(db, 'watchlists', user.uid), { items: nextItems }, { merge: true });
+  if (!user || user.demo || !configReady || !db) {
+    localStorage.setItem(watchlistKey, JSON.stringify(nextItems));
+    return;
   }
+
+  await setDoc(doc(db, 'watchlists', user.uid), { items: nextItems }, { merge: true });
+}
+
 useEffect(() => {
   if (!loginBypassEnabled || user) return;
   const bypassUser = {
@@ -343,6 +332,7 @@ useEffect(() => {
   localStorage.setItem(demoUserKey, JSON.stringify(bypassUser));
   setToast('Guest mode enabled (login bypass).');
 }, [user]);
+
 async function handleWatchlistToggle(itemId) {
   let actingUser = user;
 
@@ -370,13 +360,7 @@ async function handleWatchlistToggle(itemId) {
   await persistWatchlist(nextItems);
   setToast(exists ? 'Removed from your watchlist.' : 'Saved to your watchlist.');
 }
-
-
-    const exists = watchlist.includes(itemId);
-    const nextItems = exists ? watchlist.filter((entry) => entry !== itemId) : [...watchlist, itemId];
-    await persistWatchlist(nextItems);
-    setToast(exists ? 'Removed from your watchlist.' : 'Saved to your watchlist.');
-  }
+// ...existing code...
 
   async function handleAuthSubmit(event) {
     event.preventDefault();
@@ -551,49 +535,51 @@ async function handleWatchlistToggle(itemId) {
       <div className="ambient ambient-one" />
       <div className="ambient ambient-two" />
 
-      <header className="browse-header">
-        <div className="browse-header__left">
-          <div className="brand-lockup brand-lockup--browse">
-            <p className="eyebrow">StellarStream</p>
-          </div>
-          <nav className="browse-nav" aria-label="Browse sections">
-            {browseTabs.map((tab) => (
-              <button
-                className={`browse-nav__item ${activeBrowseTab === tab ? 'browse-nav__item--active' : ''}`}
-                key={tab}
-                onClick={() => setActiveBrowseTab(tab)}
-                type="button"
-              >
-                {tab}
-              </button>
-            ))}
-          </nav>
-        </div>
-        <div className="browse-header__right">
-          <button className="ghost-button ghost-button--compact" onClick={() => openTitle(hero)} type="button">
-            Featured
-          </button>
-          <button className="ghost-button ghost-button--compact" onClick={() => setPaymentOpen(true)} type="button">
-            Plans
-          </button>
-          {user ? (
-  <button className="ghost-button ghost-button--compact" onClick={handleSignOut} type="button">
-    Sign out
-  </button>
-) : loginBypassEnabled ? (
-  <button className="ghost-button ghost-button--compact" disabled type="button">
-    Guest mode
-  </button>
-) : (
-  <button className="ghost-button ghost-button--compact" onClick={() => setAuthOpen(true)} type="button">
-    Sign in
-  </button>
-)}
-            </button>
-          )}
-          <div className="browse-avatar">{(user?.displayName ?? user?.email ?? 'G').slice(0, 1).toUpperCase()}</div>
-        </div>
-      </header>
+<header className="browse-header">
+  <div className="browse-header__left">
+    <div className="brand-lockup brand-lockup--browse">
+      <p className="eyebrow">StellarStream</p>
+    </div>
+
+    <nav className="browse-nav" aria-label="Browse sections">
+      {browseTabs.map((tab) => (
+        <button
+          className={`browse-nav__item ${activeBrowseTab === tab ? 'browse-nav__item--active' : ''}`}
+          key={tab}
+          onClick={() => setActiveBrowseTab(tab)}
+          type="button"
+        >
+          {tab}
+        </button>
+      ))}
+    </nav>
+  </div>
+
+  <div className="browse-header__right">
+    <button className="ghost-button ghost-button--compact" onClick={() => openTitle(hero)} type="button">
+      Featured
+    </button>
+    <button className="ghost-button ghost-button--compact" onClick={() => setPaymentOpen(true)} type="button">
+      Plans
+    </button>
+
+    {user ? (
+      <button className="ghost-button ghost-button--compact" onClick={handleSignOut} type="button">
+        Sign out
+      </button>
+    ) : loginBypassEnabled ? (
+      <button className="ghost-button ghost-button--compact" disabled type="button">
+        Guest mode
+      </button>
+    ) : (
+      <button className="ghost-button ghost-button--compact" onClick={() => setAuthOpen(true)} type="button">
+        Sign in
+      </button>
+    )}
+
+    <div className="browse-avatar">{(user?.displayName ?? user?.email ?? 'G').slice(0, 1).toUpperCase()}</div>
+  </div>
+</header>
 
       <main>
         <section
