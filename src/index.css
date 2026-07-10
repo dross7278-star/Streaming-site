@@ -112,7 +112,59 @@ img {
   background: linear-gradient(180deg, rgba(20, 20, 20, 0.96), rgba(20, 20, 20, 0.7));
   backdrop-filter: blur(14px);
 }
+.browse-header__left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 
+.browse-header__right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.browse-search {
+  margin-right: 6px;
+}
+
+.browse-search input {
+  width: 290px;
+  max-width: 40vw;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(10, 13, 28, 0.82);
+  color: #fff;
+  outline: none;
+}
+
+.browse-search input::placeholder {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.browse-search-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 6px;
+}
+
+.browse-search-inline input {
+  width: 260px;
+  max-width: 34vw;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(10, 14, 28, 0.82);
+  color: #fff;
+}
+
+@media (max-width: 768px) {
+  .browse-search input {
+    width: 190px;
+  }
+}
 .browse-header__left,
 .browse-header__right,
 .brand-lockup,

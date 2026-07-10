@@ -126,9 +126,23 @@ function App() {
   const feedTitlePrefix =
     activeFeed === 'topRated' ? 'Top Rated' : activeFeed === 'upcoming' ? 'Upcoming' : 'Newest';
 
+  const mediaHeader = (title) => title;
+
+  const isMovieItem = (item) => {
+    const media = String(item.mediaType ?? item.type ?? '').toLowerCase();
+    const cat = String(item.category ?? '').toLowerCase();
+    return media === 'movie' || media === 'film' || cat.includes('movie') || cat.includes('film');
+  };
+
+  const isSeriesItem = (item) => {
+    const media = String(item.mediaType ?? item.type ?? '').toLowerCase();
+    const cat = String(item.category ?? '').toLowerCase();
+    return media === 'tv' || media === 'series' || media === 'show' || cat.includes('tv') || cat.includes('series');
+  };
+
   const rails = [
-    { title: `${feedTitlePrefix} Animation Movies`, filter: (item) => item.mediaType === 'movie' },
-    { title: `${feedTitlePrefix} Animation Series`, filter: (item) => item.mediaType === 'tv' },
+    { title: `${feedTitlePrefix} Animation Movies`, filter: isMovieItem },
+    { title: `${feedTitlePrefix} Animation Series`, filter: isSeriesItem },
     { title: `${feedTitlePrefix} Animation Mix`, filter: () => true },
   ];
 
@@ -142,6 +156,17 @@ function App() {
 
     return next;
   }, [searchResults, sortBy, minRatingFilter]);
+
+  const filteredCatalog = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return catalog;
+    return catalog.filter((item) => {
+      const title = String(item.title ?? '').toLowerCase();
+      const year = String(item.year ?? '').toLowerCase();
+      const rating = String(item.rating ?? '').toLowerCase();
+      return title.includes(q) || year.includes(q) || rating.includes(q);
+    });
+  }, [catalog, searchQuery]);
 
   useEffect(() => {
     let active = true;
@@ -306,38 +331,20 @@ function App() {
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
 
- // ...existing code...
-async function persistWatchlist(nextItems) {
-  setWatchlist(nextItems);
+  async function persistWatchlist(nextItems) {
+    setWatchlist(nextItems);
 
-  if (!user || user.demo || !configReady || !db) {
-    localStorage.setItem(watchlistKey, JSON.stringify(nextItems));
-    return;
+    if (!user || user.demo || !configReady || !db) {
+      localStorage.setItem(watchlistKey, JSON.stringify(nextItems));
+      return;
+    }
+
+    await setDoc(doc(db, 'watchlists', user.uid), { items: nextItems }, { merge: true });
   }
 
-  await setDoc(doc(db, 'watchlists', user.uid), { items: nextItems }, { merge: true });
-}
-
-useEffect(() => {
-  if (!loginBypassEnabled || user) return;
-  const bypassUser = {
-    uid: 'guest-bypass',
-    displayName: 'Guest',
-    email: 'guest@local',
-    demo: true,
-    guest: true,
-    bypass: true,
-  };
-  setUser(bypassUser);
-  localStorage.setItem(demoUserKey, JSON.stringify(bypassUser));
-  setToast('Guest mode enabled (login bypass).');
-}, [user]);
-
-async function handleWatchlistToggle(itemId) {
-  let actingUser = user;
-
-  if (!actingUser && loginBypassEnabled) {
-    actingUser = {
+  useEffect(() => {
+    if (!loginBypassEnabled || user) return;
+    const bypassUser = {
       uid: 'guest-bypass',
       displayName: 'Guest',
       email: 'guest@local',
@@ -345,22 +352,38 @@ async function handleWatchlistToggle(itemId) {
       guest: true,
       bypass: true,
     };
-    setUser(actingUser);
-    localStorage.setItem(demoUserKey, JSON.stringify(actingUser));
-  }
+    setUser(bypassUser);
+    localStorage.setItem(demoUserKey, JSON.stringify(bypassUser));
+    setToast('Guest mode enabled (login bypass).');
+  }, [user]);
 
-  if (!actingUser) {
-    setAuthOpen(true);
-    setToast('Sign in to save your watchlist.');
-    return;
-  }
+  async function handleWatchlistToggle(itemId) {
+    let actingUser = user;
 
-  const exists = watchlist.includes(itemId);
-  const nextItems = exists ? watchlist.filter((entry) => entry !== itemId) : [...watchlist, itemId];
-  await persistWatchlist(nextItems);
-  setToast(exists ? 'Removed from your watchlist.' : 'Saved to your watchlist.');
-}
-// ...existing code...
+    if (!actingUser && loginBypassEnabled) {
+      actingUser = {
+        uid: 'guest-bypass',
+        displayName: 'Guest',
+        email: 'guest@local',
+        demo: true,
+        guest: true,
+        bypass: true,
+      };
+      setUser(actingUser);
+      localStorage.setItem(demoUserKey, JSON.stringify(actingUser));
+    }
+
+    if (!actingUser) {
+      setAuthOpen(true);
+      setToast('Sign in to save your watchlist.');
+      return;
+    }
+
+    const exists = watchlist.includes(itemId);
+    const nextItems = exists ? watchlist.filter((entry) => entry !== itemId) : [...watchlist, itemId];
+    await persistWatchlist(nextItems);
+    setToast(exists ? 'Removed from your watchlist.' : 'Saved to your watchlist.');
+  }
 
   async function handleAuthSubmit(event) {
     event.preventDefault();
@@ -541,6 +564,19 @@ async function handleWatchlistToggle(itemId) {
       <p className="eyebrow">StellarStream</p>
     </div>
 
+    <form className="browse-search-inline" onSubmit={handleMovieSearch}>
+      <input
+        type="search"
+        value={searchQuery}
+        onChange={(event) => setSearchQuery(event.target.value)}
+        placeholder="Search title, year, rating"
+        aria-label="Search by title, year, or rating"
+      />
+      <button className="primary-button primary-button--small" type="submit" disabled={searchLoading}>
+        {searchLoading ? '...' : 'Search'}
+      </button>
+    </form>
+
     <nav className="browse-nav" aria-label="Browse sections">
       {browseTabs.map((tab) => (
         <button
@@ -627,55 +663,83 @@ async function handleWatchlistToggle(itemId) {
           </div>
         </section>
 
-        <section className="catalog-section catalog-section--compact reveal is-visible">
-          <div className="section-heading section-heading--compact">
-            <div>
-              <h3>Search Movies</h3>
+        {searchResults.length > 0 || searchError ? (
+          <section className="catalog-section catalog-section--compact reveal is-visible">
+            <div className="section-heading section-heading--compact">
+              <div>
+                <h3>{mediaHeader('Search Results')}</h3>
+              </div>
             </div>
-          </div>
 
-          <form className="search-row" onSubmit={handleMovieSearch}>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search movie titles..."
-              aria-label="Search movie titles"
-            />
-            <button className="primary-button" type="submit" disabled={searchLoading}>
-              {searchLoading ? 'Searching...' : 'Search'}
-            </button>
-          </form>
+            {searchResults.length > 0 && (
+              <div className="search-controls">
+                <label>
+                  Sort
+                  <select value={sortBy} onChange={(event) => setSortBy(event.target.value)}>
+                    <option value="relevance">Relevance</option>
+                    <option value="title">Title (A-Z)</option>
+                    <option value="year">Year (Newest)</option>
+                    <option value="rating">Rating (Highest)</option>
+                  </select>
+                </label>
+                <label>
+                  Min rating
+                  <select value={minRatingFilter} onChange={(event) => setMinRatingFilter(event.target.value)}>
+                    <option value="0">All</option>
+                    <option value="5">5+</option>
+                    <option value="6">6+</option>
+                    <option value="7">7+</option>
+                    <option value="8">8+</option>
+                  </select>
+                </label>
+              </div>
+            )}
 
-          {searchResults.length > 0 && (
-            <div className="search-controls">
-              <label>
-                Sort
-                <select value={sortBy} onChange={(event) => setSortBy(event.target.value)}>
-                  <option value="relevance">Relevance</option>
-                  <option value="title">Title (A-Z)</option>
-                  <option value="year">Year (Newest)</option>
-                  <option value="rating">Rating (Highest)</option>
-                </select>
-              </label>
-              <label>
-                Min rating
-                <select value={minRatingFilter} onChange={(event) => setMinRatingFilter(event.target.value)}>
-                  <option value="0">All</option>
-                  <option value="5">5+</option>
-                  <option value="6">6+</option>
-                  <option value="7">7+</option>
-                  <option value="8">8+</option>
-                </select>
-              </label>
+            {searchError && <p className="helper-text">{searchError}</p>}
+
+            {sortedSearchResults.length > 0 && (
+              <div className="rail-grid rail-grid--browse">
+                {sortedSearchResults.map((item, index) => (
+                  <TitleCard
+                    item={item}
+                    index={index}
+                    key={item.id}
+                    inWatchlist={watchlist.includes(item.id)}
+                    onOpen={openTitle}
+                    onToggle={handleWatchlistToggle}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+        ) : (
+          <section className="catalog-section catalog-section--compact reveal is-visible">
+            <div className="section-heading section-heading--compact">
+              <div>
+                <h3>{mediaHeader('Continue Watching')}</h3>
+              </div>
+              <div className="section-heading__actions">
+                <div className="feed-toggle" role="tablist" aria-label="Animation feed filter">
+                  {animationFeedOptions.map((option) => (
+                    <button
+                      key={option.id}
+                      className={`feed-toggle__button ${activeFeed === option.id ? 'feed-toggle__button--active' : ''}`}
+                      onClick={() => setActiveFeed(option.id)}
+                      type="button"
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+                <RailControls
+                  label="Continue Watching"
+                  onNext={() => scrollRail('continue-watching', 1)}
+                  onPrev={() => scrollRail('continue-watching', -1)}
+                />
+              </div>
             </div>
-          )}
-
-          {searchError && <p className="helper-text">{searchError}</p>}
-
-          {sortedSearchResults.length > 0 && (
-            <div className="rail-grid rail-grid--browse">
-              {sortedSearchResults.map((item, index) => (
+            <div className="rail-grid rail-grid--browse rail-grid--scroll" ref={setRailRef('continue-watching')}>
+              {heroCompanions.map((item, index) => (
                 <TitleCard
                   item={item}
                   index={index}
@@ -686,48 +750,8 @@ async function handleWatchlistToggle(itemId) {
                 />
               ))}
             </div>
-          )}
-        </section>
-
-        <section className="catalog-section catalog-section--compact reveal">
-          <div className="section-heading section-heading--compact">
-            <div>
-              <h3>Continue Watching</h3>
-              {catalogLoading && <p className="eyebrow">Loading animation feed...</p>}
-            </div>
-            <div className="section-heading__actions">
-              <div className="feed-toggle" role="tablist" aria-label="Animation feed filter">
-                {animationFeedOptions.map((option) => (
-                  <button
-                    key={option.id}
-                    className={`feed-toggle__button ${activeFeed === option.id ? 'feed-toggle__button--active' : ''}`}
-                    onClick={() => setActiveFeed(option.id)}
-                    type="button"
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-              <RailControls
-                label="Continue Watching"
-                onNext={() => scrollRail('continue-watching', 1)}
-                onPrev={() => scrollRail('continue-watching', -1)}
-              />
-            </div>
-          </div>
-          <div className="rail-grid rail-grid--browse rail-grid--scroll" ref={setRailRef('continue-watching')}>
-            {heroCompanions.map((item, index) => (
-              <TitleCard
-                item={item}
-                index={index}
-                key={item.id}
-                inWatchlist={watchlist.includes(item.id)}
-                onOpen={openTitle}
-                onToggle={handleWatchlistToggle}
-              />
-            ))}
-          </div>
-        </section>
+          </section>
+        )}
 
         <section className="plans-inline reveal" id="plans">
           <div className="section-heading section-heading--compact">
@@ -759,7 +783,7 @@ async function handleWatchlistToggle(itemId) {
             <div className="section-heading section-heading--compact">
               <div>
                 <p className="eyebrow">My List</p>
-                <h3>My List</h3>
+                <h3>{mediaHeader('My List')}</h3>
               </div>
               <RailControls
                 label="My List"
@@ -782,32 +806,36 @@ async function handleWatchlistToggle(itemId) {
           </section>
         )}
 
-        {rails.map((rail) => (
-          <section className="catalog-section reveal" key={rail.title}>
-            <div className="section-heading section-heading--compact">
-              <div>
-                <h3>{rail.title}</h3>
-              </div>
-              <RailControls
-                label={rail.title}
-                onNext={() => scrollRail(rail.title, 1)}
-                onPrev={() => scrollRail(rail.title, -1)}
-              />
-            </div>
-            <div className="rail-grid rail-grid--browse rail-grid--scroll" ref={setRailRef(rail.title)}>
-              {catalog.filter(rail.filter).map((item, index) => (
-                <TitleCard
-                  item={item}
-                  index={index}
-                  key={item.id}
-                  inWatchlist={watchlist.includes(item.id)}
-                  onOpen={openTitle}
-                  onToggle={handleWatchlistToggle}
+        {rails.map((rail) => {
+          const railItems = catalog.filter(rail.filter); // use catalog so headers always have items
+          return (
+            <section className="catalog-section reveal" key={rail.title}>
+              <div className="section-heading section-heading--compact">
+                <div>
+                  <h3>{mediaHeader(rail.title)}</h3>
+                </div>
+                <RailControls
+                  label={rail.title}
+                  onNext={() => scrollRail(rail.title, 1)}
+                  onPrev={() => scrollRail(rail.title, -1)}
                 />
-              ))}
-            </div>
-          </section>
-        ))}
+              </div>
+
+              <div className="rail-grid rail-grid--browse rail-grid--scroll" ref={setRailRef(rail.title)}>
+                {railItems.map((item, index) => (
+                  <TitleCard
+                    key={item.id}
+                    item={item}
+                    index={index}
+                    inWatchlist={watchlist.includes(item.id)}
+                    onOpen={openTitle}
+                    onToggle={handleWatchlistToggle}
+                  />
+                ))}
+              </div>
+            </section>
+          );
+        })}
 
         <section className="browse-cta reveal">
           <div>
@@ -834,7 +862,10 @@ async function handleWatchlistToggle(itemId) {
       />
 
       {authOpen && (
-        <ModalFrame title={authMode === 'signin' ? 'Sign in to StellarStream' : 'Create your account'} onClose={() => setAuthOpen(false)}>
+        <ModalFrame
+          title={authMode === 'signin' ? 'Sign in to StellarStream' : 'Create your account'}
+          onClose={() => setAuthOpen(false)}
+        >
           <div className="modal-layout">
             <aside className="modal-aside modal-aside--auth">
               <p className="eyebrow">Access</p>
