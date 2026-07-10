@@ -15,7 +15,20 @@ import {
   featuredTitle as fallbackFeaturedTitle,
   fetchAnimationCatalog,
 } from './data/catalog';
+import { getAuth, signInAnonymously } from "firebase/auth";
 
+const auth = getAuth();
+
+signInAnonymously(auth)
+  .then(() => {
+    // The user is now signed in anonymously!
+    console.log("Anonymous sign-in successful.");
+  })
+  .catch((error) => {
+    const errorCode = error.code;
+    const errorMessage = error.message;
+    console.error(`Error (${errorCode}): ${errorMessage}`);
+  });
 const plans = [
   {
     id: 'starter',
